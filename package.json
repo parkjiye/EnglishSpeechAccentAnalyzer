@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "expo-cli": "^6.0.6"
+    "expo-cli": "^6.0.6",
+    "expo-splash-screen": "^0.16.2",
+    "react-native-splash-screen": "^3.3.0"
   }
 }
