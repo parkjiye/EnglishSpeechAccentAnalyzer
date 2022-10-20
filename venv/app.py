@@ -1,5 +1,7 @@
 from flask import Flask, request
 from werkzeug.utils import secure_filename
+import librosa
+import librosa.display
 
 app=Flask(__name__)
 
@@ -9,6 +11,10 @@ def recordings():
         print("hello")
         file = request.files['file']
         file.save(secure_filename(file.filename))
+        
+        y, sr = librosa.load(file.filename)
+        print(y)
+        print(sr)
         return 'uploads 음성 파일 성공!'
 
 if __name__ == '__main__':
