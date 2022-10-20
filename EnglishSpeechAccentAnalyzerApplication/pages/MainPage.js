@@ -7,14 +7,13 @@ import { Audio } from 'expo-av';
 const StatusBarHeight = Platform.OS === 'ios' ? getStatusBarHeight(true) : StatusBar.currentHeight;
 
 export default function MainPage({ navigation, route }) {
+    const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
     const [sound, setSound] = React.useState();
 
-    var recordURI;
-
-    async function startRecording()
-    {
+    async function startRecording() {
         try {
+            setIsRecording(true);
             console.log('Requesting permissions..');
             await Audio.requestPermissionsAsync();
             await Audio.setAudioModeAsync({
@@ -27,30 +26,25 @@ export default function MainPage({ navigation, route }) {
             const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
             setRecording(recording);
             console.log('Recording started');
-        } catch(err) {
+        } catch (err) {
             console.error('Failed to start recording', err);
         }
     }
 
     async function stopRecording() {
         console.log('Stopping recording..');
-        setRecording(undefined);
+        setIsRecording(false);
         await recording.stopAndUnloadAsync();
-        recordURI = recording.getURI();
-        console.log('Recording stopped and stored at', recordURI);
-    }
+    }   
 
     async function playSound() {
         console.log('Loading Sound');
-        console.log(recordURI);
-        const sound = new Audio.Sound();
-        //const { sound } = await Audio.Sound.createAsync({uri: recording.getURI});
-        //setSound(sound);
-        await sound.loadAsync({
-            uri: recording.getURI
-        })
+
+        const { sound } = await Audio.Sound.createAsync({ uri: recording.getURI() }, { shouldPlay: true });
+        setSound(sound);
 
         console.log('Playing Sound');
+        console.log(sound);
         await sound.playAsync();
     }
 
@@ -59,7 +53,7 @@ export default function MainPage({ navigation, route }) {
             console.log('Unloading Sound');
             sound.unloadAsync();
         }
-        : undefined;
+            : undefined;
     }, [sound]);
 
     return (
@@ -71,7 +65,7 @@ export default function MainPage({ navigation, route }) {
                 <Text style={styles.TextLine}>Please call Stella. Ask her to bring these things with her from the store: Six spoons of fresh snow peas, five thick slabs of blue cheese, and maybe a snack for her brother Bob. We also need a small plastic snake and a big toy frog for the kids. She can scoop these things into three red bags, and we will go meet her Wednesday at the train station.</Text>
             </View>
             <View style={styles.Audio}>
-                <Button title={recording ? '녹음 중단' : '녹음 시작'} onPress={ recording ? stopRecording : startRecording} />
+                <Button title={isRecording ? '녹음 중단' : '녹음 시작'} onPress={isRecording ? stopRecording : startRecording} />
                 <Button title="녹음 재생" onPress={playSound} />
             </View>
         </View>
