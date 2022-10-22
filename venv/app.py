@@ -1,9 +1,9 @@
-from curses import raw
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 import librosa
-import librosa.display
 import pandas as pd
+import sklearn
+import xgboost
 
 app=Flask(__name__)
 
@@ -27,12 +27,12 @@ def recordings():
         y, sr = librosa.load(file.filename)
         
         #native_language
-        
+        raw_data['native_language'][0] = 126
         #sex
-        
+        raw_data['sex'][0] = 0
         #chroma_stft_mean
         chromagram = librosa.feature.chroma_stft(y, sr=sr, hop_length=512)
-        raw_data['chroma_stft_mean'][1] = chromagram.mean()
+        raw_data['chroma_stft_mean'][0] = chromagram.mean()
         #chroma_stft_var
         raw_data['chroma_stft_var'][0] = chromagram.var()
         #spectral_centroid_mean
@@ -70,9 +70,24 @@ def recordings():
             raw_data[mean_var][0] = mfccs[i-1].var()
             
             
-        print(raw_data)
+        # print(raw_data.info())
         
-        return 'uploads 음성 파일 성공!'
+        raw_data = raw_data.astype('float')
+        # scaler = sklearn.preprocessing.MinMaxScaler()
+        # np_scaled = scaler.fit_transform(raw_data)
+        # X = pd.DataFrame(np_scaled, columns=raw_data.columns)
+        
+        xgb = xgboost.XGBClassifier()
+        xgb.load_model("xgb_model.model")
+        # print(X)
+        # print(X.shape)
+        
+        # X = xgboost.DMatrix(raw_data, enable_categorical=False)
+        
+        xgb.predict(raw_data.iloc[0:1])
+        # print(result)
+        
+        return '음성 분석 성공!'
 
 if __name__ == '__main__':
     app.run(debug=True)
