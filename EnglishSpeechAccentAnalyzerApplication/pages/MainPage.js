@@ -1,6 +1,6 @@
 import React from 'react';
 import { Platform, StyleSheet, Text, View, Button, Alert, StatusBar } from 'react-native';
-
+import axios from 'axios';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { Audio } from 'expo-av';
 
@@ -10,6 +10,27 @@ export default function MainPage({ navigation, route }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
     const [sound, setSound] = React.useState();
+
+    const analyze = async (e) => {
+        const audio  = recording.getURI();
+        const formData = new FormData();
+        formData.append('file', {uri: audio, name:'test.m4a', type:'audio/m4a'});
+        formData.append("native_language", 11);
+        formData.append("sex", 0);
+
+        const api = async () => {
+            console.log("api start!");
+            const res = await axios.post("http://127.0.0.1:5000/recordings", formData, {headers:{'Content-Type': 'multipart/form-data', }});
+            return res.data;
+        }
+
+        api().then(res => {
+            console.log("success: ");
+            console.log(res);})
+            .catch(err => {
+                console.log("fail: ");
+                console.log(err);});
+    }
 
     async function startRecording() {
         try {
@@ -35,7 +56,7 @@ export default function MainPage({ navigation, route }) {
         console.log('Stopping recording..');
         setIsRecording(false);
         await recording.stopAndUnloadAsync();
-    }   
+    }
 
     async function playSound() {
         console.log('Loading Sound');
@@ -44,9 +65,10 @@ export default function MainPage({ navigation, route }) {
         setSound(sound);
 
         console.log('Playing Sound');
-        console.log(sound);
+        console.log(recording.getURI());
         await sound.playAsync();
     }
+
 
     React.useEffect(() => {
         return sound ? () => {
@@ -67,6 +89,7 @@ export default function MainPage({ navigation, route }) {
             <View style={styles.Audio}>
                 <Button title={isRecording ? '녹음 중단' : '녹음 시작'} onPress={isRecording ? stopRecording : startRecording} />
                 <Button title="녹음 재생" onPress={playSound} />
+                <Button title="분석하기" onPress={analyze} />
             </View>
         </View>
     );
