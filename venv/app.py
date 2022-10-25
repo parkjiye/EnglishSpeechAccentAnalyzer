@@ -1,18 +1,62 @@
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 import librosa
+import librosa.display
 import pandas as pd
 import sklearn
+from sklearn.model_selection import train_test_split
 import xgboost
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder
+from flask_cors import CORS
 
 app=Flask(__name__)
+CORS(app)
+
+def train():
+    data = pd.read_csv("speakers_final.csv", header=0, dtype={'birthplace':str})
+    data.dropna(axis=0, inplace=True)
+    
+    X=data.drop(columns=['Unnamed: 0','birthplace','age', 'age_onset','filename', 'speakerid', 'file_missing?', 'country', 'tempo', 'continent'])
+    Y=data['country']
+    le = LabelEncoder()
+    
+    scaler=sklearn.preprocessing.MinMaxScaler()
+    np_scaled=scaler.fit_transform(X)
+    X=pd.DataFrame(np_scaled, columns=X.columns)
+    
+    X_train , X_test , y_train, y_test = train_test_split(X,Y , test_size=0.1, random_state=42)
+
+    print(X_train.shape, y_train.shape)
+    print(X_test.shape, y_test.shape)
+        
+    xgb = XGBClassifier(n_estimators=1000, learning_rate=0.05, max_depth=4, random_state = 32)
+    
+    y_train = le.fit_transform(y_train)
+    xgb.fit(X_train, y_train)
+    xgb.save_model("xgb_model.model")
+    
+    # y_test = le.fit_transform(y_test)
+    y_preds=xgb.predict(X_test)
+    y_preds=le.inverse_transform(y_preds)
+    
+    print(y_preds)
+    print('Accuracy:%.2f'% accuracy_score(y_test, y_preds))
+    
+    
 
 @app.route("/recordings", methods=['GET', 'POST'])
 def recordings():
     if request.method=='POST':
         print("hello")
         file = request.files['file']
-        file.save(secure_filename(file.filename))
+        print(file)
+        native_language = request.form.get('native_language')
+        print(native_language)
+        sex = request.form.get('sex')
+        print(sex)
+        file.save("recording.m4a")
         
         raw_data = pd.DataFrame(index=range(0, 1), columns=['native_language' ,'sex' ,'chroma_stft_mean' ,'chroma_stft_var', 'spectral_centroid_mean', 'spectral_centroid_var',
                     'spectral_bandwidth_mean', 'spectral_bandwidth_var', 'rolloff_mean', 'rolloff_var', 'zero_crossing_rate_mean', 'zero_crossing_rate_var',
@@ -24,12 +68,12 @@ def recordings():
         
         print(raw_data)
         
-        y, sr = librosa.load(file.filename)
+        y, sr = librosa.load("recording.m4a")
         
         #native_language
-        raw_data['native_language'][0] = 126
+        raw_data['native_language'][0] = native_language
         #sex
-        raw_data['sex'][0] = 0
+        raw_data['sex'][0] = sex
         #chroma_stft_mean
         chromagram = librosa.feature.chroma_stft(y, sr=sr, hop_length=512)
         raw_data['chroma_stft_mean'][0] = chromagram.mean()
@@ -70,24 +114,24 @@ def recordings():
             raw_data[mean_var][0] = mfccs[i-1].var()
             
             
-        # print(raw_data.info())
+        print(raw_data)
         
         raw_data = raw_data.astype('float')
         # scaler = sklearn.preprocessing.MinMaxScaler()
         # np_scaled = scaler.fit_transform(raw_data)
         # X = pd.DataFrame(np_scaled, columns=raw_data.columns)
         
+        # train()
+        
         xgb = xgboost.XGBClassifier()
         xgb.load_model("xgb_model.model")
-        # print(X)
-        # print(X.shape)
+        print(raw_data.iloc[0:1])
+        result = xgb.predict(raw_data.iloc[0:1])
+        print(result)
         
-        # X = xgboost.DMatrix(raw_data, enable_categorical=False)
-        
-        xgb.predict(raw_data.iloc[0:1])
-        # print(result)
-        
-        return '음성 분석 성공!'
+        return str(result)
+    if request.method=='GET':
+        print("get!!")
 
 if __name__ == '__main__':
     app.run(debug=True)
