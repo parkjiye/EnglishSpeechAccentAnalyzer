@@ -3,6 +3,8 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import MainPage from '../pages/MainPage';
+import InfoPage from '../pages/InfoPage'
+import ResultPage from '../pages/ResultPage'
 
 const Stack = createStackNavigator();
 
@@ -19,7 +21,10 @@ const StackNavigator = () => {
             headerTintColor:"#FFFFFF",
             headerBackTitleVisible: false
         }}>
+            <Stack.Screen name="Information" component={InfoPage}/>
             <Stack.Screen name="EnglishSpeechAccentAnalyzer" component={MainPage}/>
+            <Stack.Screen name="Result" component={ResultPage}/>
+            
         </Stack.Navigator>
     )
 }
