@@ -6,7 +6,7 @@ export default function InfoPage({ navigation, route }) {
     return (
         <View style={styles.container}>
             <View style={styles.Dropdown}>
-                <Text style={styles.paragraph}>자신의 모국어 및 성별을 선택해주세요</Text>
+                <Text style={styles.paragraph}>자신의 출신국가를 선택해주세요</Text>
                 <DropDownPicker style={styles.drop}
                     items={[
                         { label: "Female", value: 0 },
@@ -17,16 +17,7 @@ export default function InfoPage({ navigation, route }) {
                     onChangeItem={item => console.log(item.label, item.value)}
                     dropDownContainerStyle={{ backgroundColor: 'white', zIndex: 1000, elevation: 1000 }}
                 />
-                <DropDownPicker
-                    items={[
-                        { label: "Female", value: 0 },
-                        { label: "Male", value: 1 }
-                    ]}
-                    defaultIndex={0}
-                    containerStyle={{ height: 40 }}
-                    onChangeItem={item => console.log(item.label, item.value)}
-                    dropDownContainerStyle={{ backgroundColor: 'white', zIndex: 1000, elevation: 1000 }}
-                />
+                
             </View>
             <View style={styles.footer}>
                 <Button title="다음 페이지" onPress={() => navigation.navigate("EnglishSpeechAccentAnalyzer")} />
@@ -49,11 +40,11 @@ const styles = StyleSheet.create({
         textAlign: "center"
     },
     Dropdown: {
-        flex: 2,
+        flex: 1,
         marginHorizontal: 20,
     },
     footer: {
-        flex: 1,
+        flex: 2,
     },
     drop: {
         marginBottom: 20
