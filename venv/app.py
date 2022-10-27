@@ -18,8 +18,8 @@ def train():
     data = pd.read_csv("speakers_final.csv", header=0, dtype={'birthplace':str})
     data.dropna(axis=0, inplace=True)
     
-    X=data.drop(columns=['Unnamed: 0','birthplace','age', 'age_onset','filename', 'speakerid', 'file_missing?', 'country', 'tempo', 'continent'])
-    Y=data['country']
+    X=data.drop(columns=['Unnamed: 0','birthplace','age', 'age_onset', 'sex', 'filename', 'speakerid', 'file_missing?', 'native_language', 'tempo', 'continent'])
+    Y=data['native_language']
     le = LabelEncoder()
     
     scaler=sklearn.preprocessing.MinMaxScaler()
@@ -52,13 +52,11 @@ def recordings():
         print("hello")
         file = request.files['file']
         print(file)
-        native_language = request.form.get('native_language')
-        print(native_language)
-        sex = request.form.get('sex')
-        print(sex)
+        country = request.form.get('country')
+        print(country)
         file.save("recording.m4a")
         
-        raw_data = pd.DataFrame(index=range(0, 1), columns=['native_language' ,'sex' ,'chroma_stft_mean' ,'chroma_stft_var', 'spectral_centroid_mean', 'spectral_centroid_var',
+        raw_data = pd.DataFrame(index=range(0, 1), columns=['country' ,'chroma_stft_mean' ,'chroma_stft_var', 'spectral_centroid_mean', 'spectral_centroid_var',
                     'spectral_bandwidth_mean', 'spectral_bandwidth_var', 'rolloff_mean', 'rolloff_var', 'zero_crossing_rate_mean', 'zero_crossing_rate_var',
                     'harmony_mean', 'harmony_var', 'mfcc1_mean', 'mfcc1_var', 'mfcc2_mean', 'mfcc2_var', 'mfcc3_mean', 'mfcc3_var', 'mfcc4_mean', 'mfcc4_var',
                     'mfcc5_mean', 'mfcc5_var', 'mfcc6_mean','mfcc6_var','mfcc7_mean','mfcc7_var','mfcc8_mean','mfcc8_var','mfcc9_mean','mfcc9_var',
@@ -71,9 +69,7 @@ def recordings():
         y, sr = librosa.load("recording.m4a")
         
         #native_language
-        raw_data['native_language'][0] = native_language
-        #sex
-        raw_data['sex'][0] = sex
+        raw_data['country'][0] = country
         #chroma_stft_mean
         chromagram = librosa.feature.chroma_stft(y, sr=sr, hop_length=512)
         raw_data['chroma_stft_mean'][0] = chromagram.mean()
