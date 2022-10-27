@@ -16,8 +16,7 @@ export default function MainPage({ navigation, route }) {
         const audio = recording.getURI();
         const formData = new FormData();
         formData.append('file', { uri: audio, name: 'test.m4a', type: 'audio/m4a' });
-        formData.append("native_language", 11);
-        formData.append("sex", 0);
+        formData.append("country", 161);
 
         const api = async () => {
             console.log("api start!");
